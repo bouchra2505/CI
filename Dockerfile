@@ -1,12 +1,13 @@
 # Step 1: Build the app using Maven
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
-RUN mvn clean package -DskipTests
+COPY . /app
+# Ensure mvnw is executable and build using the wrapper
+RUN chmod +x ./mvnw && ./mvnw -B -DskipTests package
+
 # Step 2: Create a lightweight runtime image
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar ./app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","/app.jar"]
